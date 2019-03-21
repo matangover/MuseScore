@@ -174,8 +174,9 @@ void ScoreView::wheelEvent(QWheelEvent* event)
 
 void ScoreView::resizeEvent(QResizeEvent* /*ev*/)
       {
-      if (_magIdx != MagIdx::MAG_FREE)
-            setMag(mscore->getMag(this));
+		  if (_magIdx != MagIdx::MAG_FREE) {
+           // setMag(mscore->getMag(this));
+		  }
       emit sizeChanged();
 
       // The score may need to be repositioned now.
@@ -202,18 +203,18 @@ void ScoreView::resizeEvent(QResizeEvent* /*ev*/)
 
 void ScoreView::focusInEvent(QFocusEvent* event)
       {
-      if (this != mscore->currentScoreView())
-         mscore->setCurrentScoreView(this);
-
-      if (mscore->splitScreen()) {
-            if (!focusFrame) {
-                  focusFrame = new QFocusFrame;
-                  QPalette p(focusFrame->palette());
-                  p.setColor(QPalette::WindowText, Qt::blue);
-                  focusFrame->setPalette(p);
-                  }
-            focusFrame->setWidget(static_cast<QWidget*>(this));
-            }
+//      if (this != mscore->currentScoreView())
+//         mscore->setCurrentScoreView(this);
+//
+//      if (mscore->splitScreen()) {
+//            if (!focusFrame) {
+//                  focusFrame = new QFocusFrame;
+//                  QPalette p(focusFrame->palette());
+//                  p.setColor(QPalette::WindowText, Qt::blue);
+//                  focusFrame->setPalette(p);
+//                  }
+//            focusFrame->setWidget(static_cast<QWidget*>(this));
+//            }
       QWidget::focusInEvent(event);
       }
 

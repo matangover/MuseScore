@@ -326,7 +326,7 @@ add_executable ( ${ExecutableName}
       magbox.h masterpalette.h
       measureproperties.h mediadialog.h metaedit.h miconengine.h mididriver.h
       mixer.h mixertrack.h mixertrackchannel.h mixertrackgroup.h mixertrackitem.h mixertrackpart.h mixerdetails.h musedata.h
-      musescore.h musicxml.h musicxmlfonthandler.h musicxmlsupport.h navigator.h newwizard.h noteGroups.h
+      musescore.h musescoreviewer.h musicxml.h musicxmlfonthandler.h musicxmlsupport.h navigator.h newwizard.h noteGroups.h
       omrpanel.h ove.h pa.h pagesettings.h palette.h palettebox.h paletteBoxButton.h partedit.h parteditbase.h
       pathlistdialog.h piano.h pianolevels.h pianolevelschooser.h  pianolevelsfilter.h
       pianokeyboard.h pianoroll.h pianoruler.h pianotools.h pianoview.h
@@ -349,7 +349,7 @@ add_executable ( ${ExecutableName}
       importmxml.cpp importmxmlpass1.cpp importmxmlpass2.cpp
       instrdialog.cpp instrwidget.cpp
       debugger/debugger.cpp menus.cpp
-      musescore.cpp navigator.cpp pagesettings.cpp palette.cpp
+      musescore.cpp musescoreviewer.cpp navigator.cpp pagesettings.cpp palette.cpp
       timeline.cpp
       mixer.cpp mixertrackchannel.cpp mixertrackitem.cpp mixertrackpart.cpp mixerdetails.cpp
       parteditbase.cpp playpanel.cpp selectionwindow.cpp

@@ -1089,7 +1089,7 @@ MuseScore::MuseScore()
       _navigator->setFocusPolicy(Qt::NoFocus);
       mainWindow->addWidget(_navigator);
       scorePageLayoutChanged();
-      showNavigator(preferences.getBool(PREF_UI_APP_STARTUP_SHOWNAVIGATOR));
+      //showNavigator(preferences.getBool(PREF_UI_APP_STARTUP_SHOWNAVIGATOR));
 
       _timeline = new TDockWidget;
       _timeline->setFocusPolicy(Qt::NoFocus);
@@ -7019,7 +7019,7 @@ using namespace Ms;
 //   main
 //---------------------------------------------------------
 
-int main(int argc, char* av[])
+int main_original(int argc, char* av[])
       {
 #ifndef NDEBUG
       qSetMessagePattern("%{file}:%{function}: %{message}");

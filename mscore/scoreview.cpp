@@ -128,7 +128,7 @@ ScoreView::ScoreView(QWidget* parent)
 
       setContextMenuPolicy(Qt::DefaultContextMenu);
 
-      double mag  = preferences.getDouble(PREF_SCORE_MAGNIFICATION) * (mscore->physicalDotsPerInch() / DPI);
+      double mag  = preferences.getDouble(PREF_SCORE_MAGNIFICATION) * (QGuiApplication::primaryScreen()->physicalDotsPerInch() / DPI);
       _matrix     = QTransform(mag, 0.0, 0.0, mag, 0.0, 0.0);
       imatrix     = _matrix.inverted();
       _magIdx     = preferences.getDouble(PREF_SCORE_MAGNIFICATION) == 1.0 ? MagIdx::MAG_100 : MagIdx::MAG_FREE;
@@ -232,7 +232,7 @@ void ScoreView::setScore(Score* s)
       if (_score) {
             _curLoopIn->move(s->pos(POS::LEFT));
             _curLoopOut->move(s->pos(POS::RIGHT));
-            loopToggled(getAction("loop")->isChecked());
+            //loopToggled(getAction("loop")->isChecked());
 
             connect(s, SIGNAL(posChanged(POS,unsigned)), SLOT(posChanged(POS,unsigned)));
             connect(this, SIGNAL(viewRectChanged()), this, SLOT(updateContinuousPanel()));
