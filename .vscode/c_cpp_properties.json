@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/Users/matan/Qt/5.12.2/Src/qtbase/include",
+                "/Users/matan/Qt/5.12.2/clang_64/lib/QtCore.framework/Versions/5/Headers",
+                "/Users/matan/Qt/5.12.2/clang_64/include"
+            ],
+            "defines": [
+                "QT_BOOTSTRAPPED"
+            ],
+            "macFrameworkPath": [
+                "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
