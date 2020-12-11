@@ -1782,7 +1782,7 @@ static void handleBeamAndStemDir(ChordRest* cr, const Beam::Mode bm, const Direc
       // if no beam, set stem direction on chord itself and set beam to auto
       if (!beam) {
             static_cast<Chord*>(cr)->setStemDirection(sd);
-            cr->setBeamMode(Beam::Mode::AUTO);
+            cr->setBeamMode(Beam::Mode::NONE);
             }
       // terminate the current beam and add to the score
       if (beam && bm == Beam::Mode::END)
@@ -4246,7 +4246,7 @@ Note* MusicXMLParserPass2::note(const QString& partId,
       int velocity = round(_e.attributes().value("dynamics").toDouble() * 0.9);
       bool graceSlash = false;
       bool printObject = _e.attributes().value("print-object") != "no";
-      Beam::Mode bm  = Beam::Mode::AUTO;
+      Beam::Mode bm  = Beam::Mode::NONE;
       QString instrumentId;
       MusicXMLParserLyric lyric { _pass1.getMusicXmlPart(partId).lyricNumberHandler(), _e, _score, _logger };
       MusicXMLParserNotations notations { _e, _score, _logger };
