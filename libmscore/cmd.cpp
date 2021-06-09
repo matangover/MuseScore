@@ -2814,129 +2814,126 @@ void Score::cmdExplode()
       Measure* startMeasure = startSegment->measure();
       Measure* endMeasure = endSegment ? endSegment->measure() : lastMeasure();
 
-      Fraction lTick = endMeasure->endTick();
-      bool voice = false;
+      Fraction lTick = endMeasureOrig->endTick();
 
-      for (Measure* m = startMeasure; m && m->tick() != lTick; m = m->nextMeasure()) {
-            if (m->hasVoices(srcStaff)) {
-                  voice = true;
-                  break;
-                  }
-            }
-      if (! voice) {
-            // force complete measures
+      // if (srcStaff == lastStaff - 1) {
+      //       // only one staff was selected up front - determine number of staves
+      //       // loop through all chords looking for maximum number of notes
+      //       int n = 0;
+      //       for (Segment* s = startSegment; s && s != endSegment; s = s->next1()) {
+      //             Element* e = s->element(srcTrack);
+      //             if (e && e->type() == ElementType::CHORD) {
+      //                   Chord* c = toChord(e);
+      //                   n = qMax(n, int(c->notes().size()));
+      //                   }
+      //             }
+      //       lastStaff = qMin(nstaves(), srcStaff + n);
+      //       }
+
+      for (Measure* m = startMeasureOrig; m && m->tick() != lTick; m = m->nextMeasure()) {
             deselectAll();
-            select(startMeasure, SelectType::RANGE, srcStaff);
-            select(endMeasure, SelectType::RANGE, srcStaff);
+            select(m, SelectType::RANGE, srcStaff);
+            select(m, SelectType::RANGE, srcStaff);
             startSegment = selection().startSegment();
             endSegment = selection().endSegment();
-            if (srcStaff == lastStaff - 1) {
-                  // only one staff was selected up front - determine number of staves
-                  // loop through all chords looking for maximum number of notes
-                  int n = 0;
-                  for (Segment* s = startSegment; s && s != endSegment; s = s->next1()) {
-                        Element* e = s->element(srcTrack);
-                        if (e && e->type() == ElementType::CHORD) {
-                              Chord* c = toChord(e);
-                              n = qMax(n, int(c->notes().size()));
+            if (m->hasVoices(srcStaff)) {
+                  // Measure has voices, explode voices.
+                  const QByteArray mimeData(selection().mimeData());
+                  // copy to all destination staves
+                  Segment* firstCRSegment = m->tick2segment(m->tick());
+                  for (int i = 1; srcStaff + i < lastStaff; ++i) {
+                        int track = (srcStaff + i) * VOICES;
+                        ChordRest* cr = toChordRest(firstCRSegment->element(track));
+                        if (cr) {
+                              XmlReader e(mimeData);
+                              e.setPasteMode(true);
+                              pasteStaff(e, cr->segment(), cr->staffIdx());
                               }
                         }
-                  lastStaff = qMin(nstaves(), srcStaff + n);
-                  }
 
-            const QByteArray mimeData(selection().mimeData());
-            // copy to all destination staves
-            Segment* firstCRSegment = startMeasure->tick2segment(startMeasure->tick());
-            for (int i = 1; srcStaff + i < lastStaff; ++i) {
-                  int track = (srcStaff + i) * VOICES;
-                  ChordRest* cr = toChordRest(firstCRSegment->element(track));
-                  if (cr) {
-                        XmlReader e(mimeData);
-                        e.setPasteMode(true);
-                        pasteStaff(e, cr->segment(), cr->staffIdx());
-                        }
-                  }
-
-            // loop through each staff removing all but one note from each chord
-            for (int i = 0; srcStaff + i < lastStaff; ++i) {
-                  int track = (srcStaff + i) * VOICES;
-                  for (Segment* s = startSegment; s && s != endSegment; s = s->next1()) {
-                        Element* e = s->element(track);
-                        if (e && e->type() == ElementType::CHORD) {
-                              Chord* c = toChord(e);
-                              std::vector<Note*> notes = c->notes();
-                              int nnotes = int(notes.size());
-                              // keep note "i" from top, which is backwards from nnotes - 1
-                              // reuse notes if there are more instruments than notes
-                              int stavesPerNote = qMax((lastStaff - srcStaff) / nnotes, 1);
-                              int keepIndex = qMax(nnotes - 1 - (i / stavesPerNote), 0);
-                              Note* keepNote = c->notes()[keepIndex];
-                              foreach (Note* n, notes) {
-                                    if (n != keepNote)
-                                          undoRemoveElement(n);
+                  // loop through each staff removing all but one note from each chord
+                  for (int i = 0; srcStaff + i < lastStaff; ++i) {
+                        int track = (srcStaff + i) * VOICES;
+                        for (Segment* s = startSegment; s && s != endSegment; s = s->next1()) {
+                              Element* e = s->element(track);
+                              if (e && e->type() == ElementType::CHORD) {
+                                    Chord* c = toChord(e);
+                                    std::vector<Note*> notes = c->notes();
+                                    int nnotes = int(notes.size());
+                                    // keep note "i" from top, which is backwards from nnotes - 1
+                                    // reuse notes if there are more instruments than notes
+                                    int stavesPerNote = qMax((lastStaff - srcStaff) / nnotes, 1);
+                                    int keepIndex = qMax(nnotes - 1 - (i / stavesPerNote), 0);
+                                    Note* keepNote = c->notes()[keepIndex];
+                                    foreach (Note* n, notes) {
+                                          if (n != keepNote)
+                                                undoRemoveElement(n);
+                                          }
                                     }
                               }
                         }
-                  }
-            }
-      else {
-            int sTracks[VOICES];
-            int dTracks[VOICES];
-            if (srcStaff == lastStaff - 1)
-                  lastStaff = qMin(nstaves(), srcStaff + VOICES);
 
-            for (int i = 0; i < VOICES; i++) {
-                  sTracks[i] = -1;
-                  dTracks[i] = -1;
-                  }
-            int full = 0;
+            } else {
+                  // No voices in measure. Explode as chord.
+                  
+                  int sTracks[VOICES];
+                  int dTracks[VOICES];
+                  // if (srcStaff == lastStaff - 1)
+                        // lastStaff = qMin(nstaves(), srcStaff + VOICES);
 
-            for (Segment* seg = startSegment; seg && seg->tick() < lTick; seg = seg->next1()) {
-                  for (int i = srcTrack; i < srcTrack + VOICES && full != VOICES; i++) {
-                        bool t = true;
-                        for (int j = 0; j < VOICES; j++) {
-                              if (i == sTracks[j]) {
-                                    t = false;
-                                    break;
-                                    }
-                              }
+                  for (int i = 0; i < VOICES; i++) {
+                        sTracks[i] = -1;
+                        dTracks[i] = -1;
+                        }
+                  int full = 0;
 
-                        if (!seg->measure()->hasVoice(i) || seg->measure()->isOnlyRests(i) || !t)
-                              continue;
-                        sTracks[full] = i;
-
-                        for(int j = srcTrack + full * VOICES; j < lastStaff * VOICES; j++) {
-                              if (i == j) {
-                                    dTracks[full] = j;
-                                    break;
-                                    }
-                              for(Measure* m = seg->measure(); m && m->tick() < lTick; m = m->nextMeasure()) {
-                                    if (!m->hasVoice(j) || (m->hasVoice(j) && m->isOnlyRests(j)))
-                                          dTracks[full] = j;
-                                    else {
-                                          dTracks[full] = -1;
+                  for (Segment* seg = startSegment; seg && seg->tick() < lTick; seg = seg->next1()) {
+                        for (int i = srcTrack; i < srcTrack + VOICES && full != VOICES; i++) {
+                              bool t = true;
+                              for (int j = 0; j < VOICES; j++) {
+                                    if (i == sTracks[j]) {
+                                          t = false;
                                           break;
                                           }
                                     }
-                              if (dTracks[full] != -1)
-                                    break;
-                              }
-                        full++;
-                        }
-                  }
 
-            for (int i = srcTrack, j = 0; i < lastStaff * VOICES && j < VOICES ; i += VOICES, j++) {
-                  int strack = sTracks[j % VOICES];
-                  int dtrack = dTracks[j % VOICES];
-                  if (strack != -1 && strack != dtrack && dtrack != -1)
-                        undo(new CloneVoice(startSegment, lTick, startSegment, strack, dtrack, -1, false));
+                              if (!seg->measure()->hasVoice(i) || seg->measure()->isOnlyRests(i) || !t)
+                                    continue;
+                              sTracks[full] = i;
+
+                              for(int j = srcTrack + full * VOICES; j < lastStaff * VOICES; j++) {
+                                    if (i == j) {
+                                          dTracks[full] = j;
+                                          break;
+                                          }
+                                    for(Measure* m = seg->measure(); m && m->tick() < lTick; m = m->nextMeasure()) {
+                                          if (!m->hasVoice(j) || (m->hasVoice(j) && m->isOnlyRests(j)))
+                                                dTracks[full] = j;
+                                          else {
+                                                dTracks[full] = -1;
+                                                break;
+                                                }
+                                          }
+                                    if (dTracks[full] != -1)
+                                          break;
+                                    }
+                              full++;
+                              }
+                        }
+
+                  for (int i = srcTrack, j = 0; i < lastStaff * VOICES && j < VOICES ; i += VOICES, j++) {
+                        int strack = sTracks[j % VOICES];
+                        int dtrack = dTracks[j % VOICES];
+                        if (strack != -1 && strack != dtrack && dtrack != -1)
+                              undo(new CloneVoice(startSegment, lTick, startSegment, strack, dtrack, -1, false));
+                        }
                   }
             }
 
       // select exploded region
       deselectAll();
-      select(startMeasure, SelectType::RANGE, srcStaff);
-      select(endMeasure, SelectType::RANGE, lastStaff - 1);
+      select(startMeasureOrig, SelectType::RANGE, srcStaff);
+      select(endMeasureOrig, SelectType::RANGE, lastStaff - 1);
       }
 
 //---------------------------------------------------------
